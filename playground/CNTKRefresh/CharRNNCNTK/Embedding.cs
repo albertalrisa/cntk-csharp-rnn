@@ -32,7 +32,7 @@ namespace CharRNNCNTK
             int inputDimension = input.Arguments[0].Shape[0];
             var targetType = typeof(T) == typeof(float) ? DataType.Float : DataType.Double;
             var embeddingParameters = new Parameter(new int[] { embeddingDimension, inputDimension }, targetType, CNTKLib.GlorotUniformInitializer(), device);
-            return CNTKLib.Times(embeddingParameters, input, name:outputName);
+            return Function.Alias(CNTKLib.Times(embeddingParameters, input), outputName);
         }
 
         public static Function Build(Function input, int embeddingDimension, DeviceDescriptor device, string outputName = "embedding")

@@ -42,19 +42,25 @@ namespace CharRNNCNTK
                 input = CNTKLib.Reshape(input, new int[] { newDimension });
             }
 
-            Function fullyConnected = FullyConnectedLinearLayer<T>(input, outputDimension, device, outputName);
+            Function fullyConnected = FullyConnectedLinearLayer<T>(input, outputDimension, device);
+            Function dense;
             switch (activation)
             {
                 default:
                 case Activation.None:
-                    return fullyConnected;
+                    dense = fullyConnected;
+                    break;
                 case Activation.ReLU:
-                    return CNTKLib.ReLU(fullyConnected);
+                    dense = CNTKLib.ReLU(fullyConnected);
+                    break;
                 case Activation.Sigmoid:
-                    return CNTKLib.Sigmoid(fullyConnected);
+                    dense = CNTKLib.Sigmoid(fullyConnected);
+                    break;
                 case Activation.Tanh:
-                    return CNTKLib.Tanh(fullyConnected);
+                    dense = CNTKLib.Tanh(fullyConnected);
+                    break;
             }
+            return Function.Alias(dense, outputName);
         }
 
         public static Function Build(Variable input, int outputDimension, DeviceDescriptor device,
