@@ -73,7 +73,7 @@
     <Compile Include="LSTM.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Stabilize.cs" />
+    <Compile Include="Stabilizer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
