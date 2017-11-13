@@ -7,9 +7,9 @@ using CNTK;
 
 namespace CharRNNCNTK
 {
-    class Stabilize
+    class Stabilizer
     {
-        public static Function Build<TElementType>(Variable input, DeviceDescriptor device, string outputName = "Stabilize")
+        public static Function Build<TElementType>(Variable input, DeviceDescriptor device, string outputName = "Stabilizer")
         {
             System.Diagnostics.Debug.Assert(typeof(TElementType) == typeof(float) || typeof(TElementType) == typeof(double));
             bool isFloatType = typeof(TElementType) == typeof(float);
@@ -30,12 +30,12 @@ namespace CharRNNCNTK
                 CNTKLib.Log(
                     Constant.Scalar(f.DataType, 1.0) +
                     CNTKLib.Exp(CNTKLib.ElementTimes(f,
-                        new Parameter(new NDShape(), f.DataType, .99537863 /* 1/f*ln(e^f-1)*/, device, "stabilizerParameter")))),
+                        new Parameter(new NDShape(), f.DataType, .99537863 /* 1/f*ln(e^f-1)*/, device, "alpha")))),
                 "beta");
-            return CNTKLib.ElementTimes(beta, input, outputName);
+            return Function.Alias(CNTKLib.ElementTimes(beta, input), outputName);
         }
 
-        public static Function Build(Variable input, DeviceDescriptor device, string outputName = "Stabilize")
+        public static Function Build(Variable input, DeviceDescriptor device, string outputName = "Stabilizer")
         {
             return Build<float>(input, device, outputName);
         }
