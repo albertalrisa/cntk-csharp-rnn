@@ -53,7 +53,7 @@ namespace CharRNNCNTK
                 Function model = input;
                 for (int i = 0; i < numLstmLayer; i++)
                 {
-                    model = Stabilize.Build(model, device);
+                    model = Stabilizer.Build(model, device);
                     model = LSTM.Build(model, numHiddenDimension, device);
                 }
                 model = Dense.Build(model, numOutputDimension, device);
@@ -89,36 +89,34 @@ namespace CharRNNCNTK
 
         MinibatchData GetData(int index, int minibatchSize, string data, Dictionary<char, int> charToIndex, int vocabDimension)
         {
-            //  TODO: Write a more effective approach
-            var xi = new int[minibatchSize];
-            var yi = new int[minibatchSize];
+            var inputString = data.Substring(index, minibatchSize);
+            var outputString = data.Substring(index + 1, minibatchSize);
 
-            var xiData = data.Substring(index, minibatchSize);
-            var yiData = data.Substring(index + 1, minibatchSize);
+            //  Handle EOF
+            if (outputString.Length < minibatchSize)
+                minibatchSize = outputString.Length;
+            inputString = data.Substring(0, minibatchSize);
 
-            for (int i = 0; i < xiData.Length; i++)
-                xi[i] = charToIndex[xiData[i]];
-            for (int i = 0; i < yiData.Length; i++)
-                yi[i] = charToIndex[yiData[i]];
+            List<float> inputSequence = new List<float>();
+            List<float> outputSequence = new List<float>();
 
-            List<float> X = new List<float>();
-            List<float> Y = new List<float>();
-            foreach (var i in xi)
+            for (int i = 0; i < inputString.Length; i++)
             {
-                float[] ex = new float[vocabDimension];
-                ex[i] = 1.0f;
-                X.AddRange(ex);
+                var inputCharacterIndex = charToIndex[inputString[i]];
+                var inputCharOneHot = new float[vocabDimension];
+                inputCharOneHot[inputCharacterIndex] = 1;
+                inputSequence.AddRange(inputCharOneHot);
+
+                var outputCharacterIndex = charToIndex[outputString[i]];
+                var outputCharOneHot = new float[vocabDimension];
+                outputCharOneHot[outputCharacterIndex] = 1;
+                outputSequence.AddRange(outputCharOneHot);
             }
-            foreach (var i in yi)
-            {
-                float[] ey = new float[vocabDimension];
-                ey[i] = 1.0f;
-                Y.AddRange(ey);
-            }
+
             return new MinibatchData
             {
-                InputSequence = X,
-                OutputSequence = Y
+                InputSequence = inputSequence,
+                OutputSequence = outputSequence
             };
         }
 
@@ -132,10 +130,6 @@ namespace CharRNNCNTK
             var inputModel = CreateInputs(characters.Count);
             var modelSequence = CreateModel(characters.Count, 2, 256);
             var model = modelSequence(inputModel.InputSequence);
-
-//            var model = CreateModel(inputModel.InputSequence, characters.Count, 1, 256);
-//            model.Save("dummymodel.dnn");
-//            return;
             
             //  Setup the criteria (loss and metric)
             var crossEntropy = CNTKLib.CrossEntropyWithSoftmax(model, inputModel.LabelSequence);
