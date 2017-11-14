@@ -142,7 +142,7 @@ namespace CharRNNCNTK
             var errors = CNTKLib.ClassificationError(model, inputModel.LabelSequence);
 
             //  Instantiate the trainer object to drive the model training
-            var learningRatePerSample = new TrainingParameterScheduleDouble(0.01, 1);
+            var learningRatePerSample = new TrainingParameterScheduleDouble(0.001, 1);
             var momentumTimeConstant = CNTKLib.MomentumAsTimeConstantSchedule(1100);
             var additionalParameters = new AdditionalLearningOptions
             {
