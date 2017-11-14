@@ -66,6 +66,12 @@ namespace CharRNNCNTK
             bool isFloatType = typeof(TElementType) == typeof(float);
             DataType dataType = isFloatType ? DataType.Float : DataType.Double;
 
+            if (enableSelfStabilization)
+            {
+                prevOutput = Stabilizer.Build(prevOutput, device, "StabilizedPrevOutput");
+                prevCellState = Stabilizer.Build(prevCellState, device, "StabilizedPrevCellState");
+            }
+
             uint seed = 1;
             Parameter W = new Parameter((NDShape) new[] { lstmCellDimension * 4, NDShape.InferredDimension }, dataType, 
                 CNTKLib.GlorotUniformInitializer(1.0, 1, 0, seed++), device, "W");
@@ -96,6 +102,8 @@ namespace CharRNNCNTK
             Function bit = CNTKLib.ElementTimes(it, ctt);
             Function ct = CNTKLib.Plus(bft, bit, "CellState");
 
+            //  According to the TrainingCSharp example in CNTK repository, h (output) should be stabilized,
+            //  however, the Python binding only stabilizes the previous output and previous cell state
             Function h = CNTKLib.ElementTimes(ot, CNTKLib.Tanh(ct), "Output");
             Function c = ct;
             if (lstmOutputDimension != lstmCellDimension)
