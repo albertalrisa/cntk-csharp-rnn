@@ -95,7 +95,7 @@ namespace CharRNNCNTK
             //  Handle EOF
             if (outputString.Length < minibatchSize)
                 minibatchSize = outputString.Length;
-            inputString = data.Substring(0, minibatchSize);
+            inputString = inputString.Substring(0, minibatchSize);
 
             List<float> inputSequence = new List<float>();
             List<float> outputSequence = new List<float>();
@@ -130,27 +130,28 @@ namespace CharRNNCNTK
             var inputModel = CreateInputs(characters.Count);
             var modelSequence = CreateModel(characters.Count, 2, 256);
             var model = modelSequence(inputModel.InputSequence);
-            
+
+            var epochs = 50;
+            var minibatchSize = 100;
+            var maxNumberOfMinibatches = int.MaxValue;
+            var sampleFrequency = 1000;
+            uint minibatchesPerEpoch = (uint) Math.Min(text.Length / minibatchSize, maxNumberOfMinibatches / epochs);
+
             //  Setup the criteria (loss and metric)
             var crossEntropy = CNTKLib.CrossEntropyWithSoftmax(model, inputModel.LabelSequence);
             var errors = CNTKLib.ClassificationError(model, inputModel.LabelSequence);
 
             //  Instantiate the trainer object to drive the model training
-            var learningRatePerSample = new TrainingParameterScheduleDouble(0.001);
+            var learningRatePerSample = new TrainingParameterScheduleDouble(0.01, 1);
             var momentumTimeConstant = CNTKLib.MomentumAsTimeConstantSchedule(1100);
             var additionalParameters = new AdditionalLearningOptions
             {
                 gradientClippingThresholdPerSample = 5.0,
                 gradientClippingWithTruncation = true
             };
-            var learner = Learner.MomentumSGDLearner(model.Parameters(), learningRatePerSample, momentumTimeConstant, false, additionalParameters);
+            var learner = Learner.MomentumSGDLearner(model.Parameters(), learningRatePerSample, momentumTimeConstant, true, additionalParameters);
             var trainer = Trainer.CreateTrainer(model, crossEntropy, errors, new List<Learner>(){ learner });
 
-            var epochs = 50;
-            var minibatchSize = 100;
-            var maxNumberOfMinibatches = int.MaxValue;
-            var sampleFrequency = 1000;
-            var minibatchesPerEpoch = Math.Min(text.Length / minibatchSize, maxNumberOfMinibatches / epochs);
             var parameterTensor = model.Parameters();
             var sumOfParameters = 0;
             foreach (var parameter in parameterTensor)
