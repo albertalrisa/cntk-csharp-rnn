@@ -27,12 +27,13 @@ namespace CharRNNCNTK
         /// This function builds a Dense (fully connected linear) layer from an input variable and returns it as a Function
         /// that can be passed through another layers.
         /// </summary>
+        /// <typeparam name="T">The data type of the values. May be set to float or double.</typeparam>
         /// <param name="input">The input of the Dense layer</param>
         /// <param name="outputDimension">The number of output nodes of the Dense layer</param>
         /// <param name="device">Device used for the computation of this layer</param>
         /// <param name="activation">The activation function used for this Dense layer</param>
         /// <param name="outputName">The name of the Function instance in the network</param>
-        /// <returns>A function that implements the desired fully-connected layer.</returns>
+        /// <returns>A Function that implements the desired fully-connected layer.</returns>
         public static Function Build<T>(Variable input, int outputDimension, DeviceDescriptor device,
             Activation activation = Activation.None, string outputName = "Dense")
         {

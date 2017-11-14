@@ -24,7 +24,7 @@ namespace CharRNNCNTK
         /// <param name="embeddingDimension">The number of dimensions in the embedding layer</param>
         /// <param name="device">Device used for the computation of this layer</param>
         /// <param name="outputName">The name of the Function instance in the network</param>
-        /// <returns>A function that implements the embedding layer</returns>
+        /// <returns>A Function that implements the embedding layer</returns>
         public static Function Build<T>(Function input, int embeddingDimension, DeviceDescriptor device, string outputName = "embedding")
         {
             System.Diagnostics.Debug.Assert(typeof(T) == typeof(float) || typeof(T) == typeof(double));
