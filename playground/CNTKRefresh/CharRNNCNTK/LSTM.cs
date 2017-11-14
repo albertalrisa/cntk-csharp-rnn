@@ -58,13 +58,18 @@ namespace CharRNNCNTK
         public static Tuple<Function, Function> LSTMCell<TElementType>(Variable input, Variable prevOutput,
             Variable prevCellState, bool enableSelfStabilization, DeviceDescriptor device)
         {
-            //  TODO: Implements Self Stabilization
             //  TODO: Implements Peephole
             int lstmOutputDimension = prevOutput.Shape[0];
             int lstmCellDimension = prevCellState.Shape[0];
 
             bool isFloatType = typeof(TElementType) == typeof(float);
             DataType dataType = isFloatType ? DataType.Float : DataType.Double;
+
+            if (enableSelfStabilization)
+            {
+                prevOutput = Stabilizer.Build(prevOutput, device, "StabilizedPrevOutput");
+                prevCellState = Stabilizer.Build(prevCellState, device, "StabilizedPrevCellState");
+            }
 
             uint seed = 1;
             Parameter W = new Parameter((NDShape) new[] { lstmCellDimension * 4, NDShape.InferredDimension }, dataType, 
@@ -96,6 +101,8 @@ namespace CharRNNCNTK
             Function bit = CNTKLib.ElementTimes(it, ctt);
             Function ct = CNTKLib.Plus(bft, bit, "CellState");
 
+            //  According to the TrainingCSharp example in CNTK repository, h (output) should be stabilized,
+            //  however, the Python binding only stabilizes the previous output and previous cell state
             Function h = CNTKLib.ElementTimes(ot, CNTKLib.Tanh(ct), "Output");
             Function c = ct;
             if (lstmOutputDimension != lstmCellDimension)
